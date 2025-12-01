@@ -2,7 +2,7 @@
 
 Interactive 3D visualization of SPY options implied volatility dynamics.
 
-**[View Live Demo →](https://YOUR_USERNAME.github.io/YOUR_REPO_NAME/)**
+**[View Live Demo →](https://harrodyuan.github.io/vol_curve/)**
 
 ## Visualizations
 
