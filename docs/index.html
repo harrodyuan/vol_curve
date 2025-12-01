@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPY Implied Volatility Surface</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --accent: #00d4aa;
+            --accent-dim: #00a888;
+            --text: #e8e8e8;
+            --text-dim: #8a8a9a;
+            --border: #2a2a3a;
+            --put-color: #ff4757;
+            --call-color: #3498db;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, #00aaff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 1000px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 212, 170, 0.15);
+        }
+        
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .card-header .icon {
+            font-size: 1.5rem;
+        }
+        
+        .card-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .card-header.puts { border-left: 4px solid var(--put-color); }
+        .card-header.calls { border-left: 4px solid var(--call-color); }
+        .card-header.both { border-left: 4px solid var(--accent); }
+        .card-header.surface { border-left: 4px solid #9b59b6; }
+        
+        .card-body {
+            height: 450px;
+            position: relative;
+        }
+        
+        .card-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .card-footer {
+            padding: 1rem 1.5rem;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--border);
+        }
+        
+        .card-footer p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .btn-open {
+            display: inline-block;
+            margin-top: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-open:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+        
+        .info-section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        
+        .info-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+        
+        .info-section ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        
+        .info-section li {
+            padding: 0.75rem 1rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-dim);
+        }
+        
+        .info-section code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0,212,170,0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            color: var(--accent);
+            font-size: 0.85rem;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+        
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SPY Implied Volatility Surface</h1>
+        <p class="subtitle">Interactive 3D visualization of options market dynamics</p>
+    </div>
+    
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <div class="card-header surface">
+                    <span class="icon">🌐</span>
+                    <h2>Clean Surface</h2>
+                </div>
+                <div class="card-body">
+                    <iframe src="vol_surface_v3_clean.html"></iframe>
+                </div>
+                <div class="card-footer">
+                    <p>Interpolated volatility surface from OTM options. Shows the classic skew pattern.</p>
+                    <a href="vol_surface_v3_clean.html" class="btn-open" target="_blank">Open Full View</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header both">
+                    <span class="icon">📊</span>
+                    <h2>Puts & Calls</h2>
+                </div>
+                <div class="card-body">
+                    <iframe src="vol_surface_v3_both.html"></iframe>
+                </div>
+                <div class="card-footer">
+                    <p>Combined view with puts (red) and calls (blue) overlaid on the surface.</p>
+                    <a href="vol_surface_v3_both.html" class="btn-open" target="_blank">Open Full View</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header puts">
+                    <span class="icon">🔴</span>
+                    <h2>Put Options</h2>
+                </div>
+                <div class="card-body">
+                    <iframe src="vol_surface_v3_puts.html"></iframe>
+                </div>
+                <div class="card-footer">
+                    <p>Put option volatility surface. Notice the steep skew for downside protection.</p>
+                    <a href="vol_surface_v3_puts.html" class="btn-open" target="_blank">Open Full View</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header calls">
+                    <span class="icon">🔵</span>
+                    <h2>Call Options</h2>
+                </div>
+                <div class="card-body">
+                    <iframe src="vol_surface_v3_calls.html"></iframe>
+                </div>
+                <div class="card-footer">
+                    <p>Call option volatility surface. Flatter profile compared to puts.</p>
+                    <a href="vol_surface_v3_calls.html" class="btn-open" target="_blank">Open Full View</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <h3>Technical Details</h3>
+            <ul>
+                <li>Data source: <code>SpiderRock OPRA</code> options trades</li>
+                <li>Underlying: <code>SPY</code> (S&P 500 ETF)</li>
+                <li>Time resolution: <code>5-minute</code> buckets</li>
+                <li>IV range: <code>5% - 35%</code> (outliers filtered)</li>
+                <li>Moneyness range: <code>80% - 120%</code> of spot</li>
+                <li>Expiration: <code>≤60 days</code> to expiration</li>
+                <li>Timezone: <code>Eastern Time (ET)</code></li>
+                <li>Surface: <code>Linear interpolation</code> on OTM options</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Built with Python, Pandas, and Plotly</p>
+    </div>
+</body>
+</html>
+

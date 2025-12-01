@@ -1,0 +1,40 @@
+# Data files
+*.csv
+*.xlsx
+*.xls
+
+# Q/kdb+ files
+*.q
+*.k
+kc.lic
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated frames
+video_frames/
+video_frames_v2/
+
+# Results (regenerate from code)
+results/
+
+# Temp files
+*.log
+*.tmp
+pykx_license_fix_log.txt
+
+# Large media (keep HTML, ignore GIF/MP4)
+*.gif
+*.mp4
+*.png
+
