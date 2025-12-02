@@ -193,11 +193,12 @@ def build_animation(curves: pd.DataFrame, view: str = 'both', speed_ms: int = 50
     fig.update_layout(
         title=dict(text=f'SPY Vol Surface — {title_map.get(view, view)}', x=0.5),
         scene=dict(
-            xaxis_title='Strike',
+            xaxis_title='Strike ($)',
             yaxis_title='Days to Exp',
-            zaxis_title='IV %',
-            camera=dict(eye=dict(x=1.6, y=-1.6, z=0.7)),
-            aspectratio=dict(x=1.4, y=1.1, z=0.7)
+            zaxis_title='IV (%)',
+            xaxis=dict(autorange='reversed'),
+            camera=dict(eye=dict(x=-1.8, y=-1.8, z=1.2)),
+            aspectratio=dict(x=1.2, y=1.0, z=0.8)
         ),
         sliders=sliders,
         updatemenus=buttons,
@@ -205,6 +206,42 @@ def build_animation(curves: pd.DataFrame, view: str = 'both', speed_ms: int = 50
         width=1000,
         showlegend=True,
         legend=dict(x=0.9, y=0.9)
+    )
+    
+    return fig
+
+
+def build_price_chart(df: pd.DataFrame, freq: str = '5min') -> go.Figure:
+    """Build OHLC candlestick chart for underlying price."""
+    
+    ohlc = df.groupby(df['bucket_time']).agg({
+        'uPrc': ['first', 'max', 'min', 'last']
+    }).reset_index()
+    ohlc.columns = ['time', 'open', 'high', 'low', 'close']
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Candlestick(
+        x=ohlc['time'],
+        open=ohlc['open'],
+        high=ohlc['high'],
+        low=ohlc['low'],
+        close=ohlc['close'],
+        increasing_line_color='#26a69a',
+        decreasing_line_color='#ef5350',
+        name='SPY'
+    ))
+    
+    fig.update_layout(
+        title=dict(text='SPY Intraday Price', x=0.5, font=dict(size=16)),
+        yaxis_title='Price ($)',
+        xaxis_title='Time (ET)',
+        height=350,
+        margin=dict(l=50, r=50, t=60, b=40),
+        xaxis_rangeslider_visible=False,
+        template='plotly_dark',
+        paper_bgcolor='rgba(18,18,26,1)',
+        plot_bgcolor='rgba(18,18,26,1)'
     )
     
     return fig
@@ -218,9 +255,14 @@ def run(csv_path: str, output_dir: str = 'docs'):
     df = filter_trades(df)
     curves = aggregate_curves(df)
     
+    # Price chart
+    fig_price = build_price_chart(df)
+    fig_price.write_html(f'{output_dir}/price_chart.html')
+    print(f'Saved {output_dir}/price_chart.html')
+    
     for view in ['both', 'puts', 'calls']:
         fig = build_animation(curves, view=view)
-        out = f'{output_dir}/vol_surface_v3_{view if view != "both" else "both"}.html'
+        out = f'{output_dir}/vol_surface_v3_{view}.html'
         fig.write_html(out)
         print(f'Saved {out}')
     
