@@ -191,21 +191,23 @@ def build_animation(curves: pd.DataFrame, view: str = 'both', speed_ms: int = 50
     }
     
     fig.update_layout(
-        title=dict(text=f'SPY Vol Surface — {title_map.get(view, view)}', x=0.5),
+        title=dict(text=f'SPY Vol Surface — {title_map.get(view, view)}', x=0.5, y=0.95),
         scene=dict(
-            xaxis_title='Strike ($)',
-            yaxis_title='Days to Exp',
-            zaxis_title='IV (%)',
-            xaxis=dict(autorange='reversed'),
-            camera=dict(eye=dict(x=-1.8, y=-1.8, z=1.2)),
-            aspectratio=dict(x=1.2, y=1.0, z=0.8)
+            xaxis_title='Strike',
+            yaxis_title='DTE',
+            zaxis_title='IV %',
+            camera=dict(eye=dict(x=1.5, y=1.5, z=1.0)),
+            aspectratio=dict(x=1, y=1, z=0.7),
+            domain=dict(x=[0, 1], y=[0.1, 0.9])
         ),
         sliders=sliders,
         updatemenus=buttons,
-        height=750,
-        width=1000,
+        autosize=True,
+        margin=dict(l=10, r=10, t=50, b=80),
         showlegend=True,
-        legend=dict(x=0.9, y=0.9)
+        legend=dict(x=0.02, y=0.98, bgcolor='rgba(0,0,0,0.5)'),
+        paper_bgcolor='rgba(0,0,0,0)',
+        template='plotly_dark'
     )
     
     return fig
@@ -233,11 +235,11 @@ def build_price_chart(df: pd.DataFrame, freq: str = '5min') -> go.Figure:
     ))
     
     fig.update_layout(
-        title=dict(text='SPY Intraday Price', x=0.5, font=dict(size=16)),
+        title=dict(text='SPY Intraday Price', x=0.5, font=dict(size=14)),
         yaxis_title='Price ($)',
-        xaxis_title='Time (ET)',
-        height=350,
-        margin=dict(l=50, r=50, t=60, b=40),
+        xaxis_title='',
+        height=280,
+        margin=dict(l=50, r=20, t=40, b=30),
         xaxis_rangeslider_visible=False,
         template='plotly_dark',
         paper_bgcolor='rgba(18,18,26,1)',
